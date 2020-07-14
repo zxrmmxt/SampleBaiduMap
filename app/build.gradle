@@ -5,7 +5,7 @@ android {
     buildToolsVersion "29.0.2"
 
     defaultConfig {
-        applicationId "com.xt.samplebaidumap"
+        applicationId "steelmate.com.iot_hardware"
         minSdkVersion 17
         targetSdkVersion 29
         versionCode 1
@@ -21,6 +21,19 @@ android {
         }
     }
 
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+
+    //关于Static interface methods are only supported starting with Android N (--min-api 24)错误怎么修改
+    //因为静态接口需要在Java 8 下才支持使用，所以我们要使用静态接口，就需要在app的build.gradle文件中配置声明，使用Java 8编译。
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 }
 
 dependencies {
@@ -31,4 +44,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    implementation(name: 'BaiduLBS_android_478157120', ext: 'aar')
+
+    api 'io.reactivex.rxjava3:rxandroid:3.0.0'
+    api 'io.reactivex.rxjava3:rxjava:3.0.4'
+    //maven { url 'https://jitpack.io' }
+    implementation 'com.github.tbruyelle:rxpermissions:0.12'
 }
