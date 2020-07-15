@@ -26,7 +26,11 @@ android {
             dirs 'libs'
         }
     }
-
+    sourceSets {
+        main {
+            jniLibs.srcDir 'libs'
+        }
+    }
     //关于Static interface methods are only supported starting with Android N (--min-api 24)错误怎么修改
     //因为静态接口需要在Java 8 下才支持使用，所以我们要使用静态接口，就需要在app的build.gradle文件中配置声明，使用Java 8编译。
     compileOptions {

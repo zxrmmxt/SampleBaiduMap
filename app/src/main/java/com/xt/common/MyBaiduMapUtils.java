@@ -1,12 +1,16 @@
 package com.xt.common;
 
 import android.app.Activity;
+import android.content.Context;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.SparseIntArray;
 import android.view.View;
 import android.widget.TextView;
 
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
@@ -26,6 +30,7 @@ import java.util.List;
 
 /**
  * @author xt on 2020/7/14 14:36
+ * 使用百度地图SDK的工具类
  */
 public class MyBaiduMapUtils {
     public static final SparseIntArray ZOOM_INFO      = new SparseIntArray();
@@ -55,6 +60,127 @@ public class MyBaiduMapUtils {
         ZOOM_INFO.put(5, 500000);
         ZOOM_INFO.put(4, 1000000);
         ZOOM_INFO.put(3, 2000000);
+    }
+
+    public static class LocationService {
+        private LocationClient       client = null;
+        private LocationClientOption mOption, DIYoption;
+        private final Object             objLock = new Object();
+        private       BDLocationListener mListener;
+
+        /***
+         *
+         * @param locationContext getApplicationContext()获取
+         */
+        public LocationService(Context locationContext) {
+            synchronized (objLock) {
+                if (client == null) {
+                    client = new LocationClient(locationContext);
+                    client.setLocOption(getDefaultLocationClientOption());
+                }
+            }
+        }
+
+        /***
+         *
+         * @param listener
+         * @return
+         */
+
+        public boolean registerListener(BDLocationListener listener) {
+            boolean isSuccess = false;
+            if (listener != null) {
+                client.registerLocationListener(listener);
+                isSuccess = true;
+            }
+            mListener = listener;
+            return isSuccess;
+        }
+
+        public void unregisterListener() {
+            if (mListener != null) {
+                unregisterListener(mListener);
+            }
+        }
+
+        public void unregisterListener(BDLocationListener listener) {
+            if (listener != null) {
+                client.unRegisterLocationListener(listener);
+            }
+        }
+
+        /***
+         *
+         * @param option
+         * @return isSuccessSetOption
+         */
+        public boolean setLocationOption(LocationClientOption option) {
+            boolean isSuccess = false;
+            if (option != null) {
+                if (client.isStarted()) {
+                    client.stop();
+                }
+                DIYoption = option;
+                client.setLocOption(option);
+            }
+            return isSuccess;
+        }
+
+        public LocationClientOption getOption() {
+            return DIYoption;
+        }
+
+        /***
+         *
+         * @return DefaultLocationClientOption
+         */
+        public LocationClientOption getDefaultLocationClientOption() {
+            if (mOption == null) {
+                mOption = new LocationClientOption();
+                mOption.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);//可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
+                mOption.setCoorType("bd09ll");//可选，默认gcj02，设置返回的定位结果坐标系，如果配合百度地图使用，建议设置为bd09ll;
+//			mOption.setScanSpan(3000);//可选，默认0，即仅定位一次，设置发起定位请求的间隔需要大于等于1000ms才是有效的
+//			mOption.setScanSpan(0);//可选，默认0，即仅定位一次，设置发起定位请求的间隔需要大于等于1000ms才是有效的
+                mOption.setIsNeedAddress(true);//可选，设置是否需要地址信息，默认不需要
+                mOption.setIsNeedLocationDescribe(true);//可选，设置是否需要地址描述
+                mOption.setNeedDeviceDirect(false);//可选，设置是否需要设备方向结果
+                mOption.setLocationNotify(false);//可选，默认false，设置是否当gps有效时按照1S1次频率输出GPS结果
+                mOption.setIgnoreKillProcess(true);//可选，默认true，定位SDK内部是一个SERVICE，并放到了独立进程，设置是否在stop的时候杀死这个进程，默认不杀死
+                mOption.setIsNeedLocationDescribe(true);//可选，默认false，设置是否需要位置语义化结果，可以在BDLocation.getLocationDescribe里得到，结果类似于“在北京天安门附近”
+                mOption.setIsNeedLocationPoiList(true);//可选，默认false，设置是否需要POI结果，可以在BDLocation.getPoiList里得到
+                mOption.SetIgnoreCacheException(false);//可选，默认false，设置是否收集CRASH信息，默认收集
+
+                mOption.setIsNeedAltitude(false);//可选，默认false，设置定位时是否需要海拔信息，默认不需要，除基础定位版本都可用
+
+            }
+            return mOption;
+        }
+
+        public void start() {
+            synchronized (objLock) {
+                if (client != null && !client.isStarted()) {
+                    client.start();
+                }
+            }
+        }
+
+        /**
+         * 停止定位
+         */
+        public void stop() {
+            synchronized (objLock) {
+                if (client != null && client.isStarted()) {
+                    client.stop();
+                }
+            }
+        }
+
+        public boolean requestHotSpotState() {
+
+            return client.requestHotSpotState();
+
+        }
+
     }
 
     /**
@@ -105,19 +231,26 @@ public class MyBaiduMapUtils {
         return Math.abs((DISTANCE * slope) / Math.sqrt(1 + slope * slope));
     }
 
-    public static class TrackPlaybackUtils {
+    public static class OverlayUtils {
         /**
-         * 轨迹回放
+         * 通过递归调用实现轨迹回放
          *
          * @param moveMarker
-         * @param startPoint
-         * @param endPoint
-         * @return
+         * @param latLngList
+         * @param index
          */
-        public static boolean setMoveMarkPosition(final Marker moveMarker, final LatLng startPoint, final LatLng endPoint) {
+        public static void setMoveMarkPosition(final Marker moveMarker, List<LatLng> latLngList, int index) {
             if (moveMarker == null) {
-                return false;
+                return;
             }
+            if ((latLngList == null) || (latLngList.size() == 0)) {
+                return;
+            }
+            if (index >= (latLngList.size() - 1)) {
+                return;
+            }
+            final LatLng startPoint = latLngList.get(index);
+            final LatLng endPoint   = latLngList.get(index + 1);
             moveMarker.setPosition(startPoint);
             moveMarker.setRotate((float) getAngle(startPoint, endPoint));
             //是不是正向的标示
@@ -140,49 +273,38 @@ public class MyBaiduMapUtils {
                     e.printStackTrace();
                 }
             }
-            return true;
+            setMoveMarkPosition(moveMarker, latLngList, index + 1);
         }
-    }
 
-    public Marker addMoveMarker(BaiduMap baiduMap, Marker moveMarker, LatLng current, LatLng next) {
-        if (moveMarker != null) {
-            moveMarker.remove();
+        public Marker addMoveMarker(BaiduMap baiduMap, Marker moveMarker, LatLng current, LatLng next) {
+            if (moveMarker != null) {
+                moveMarker.remove();
+            }
+            BitmapDescriptor myLocationIcon = BitmapDescriptorFactory
+                    .fromResource(R.drawable.wsdk_icon_classic);
+            OverlayOptions markerOptions =
+                    new MarkerOptions()
+                            .flat(true)
+                            .anchor(0.5f, 0.5f)
+                            .icon(myLocationIcon)
+                            .position(current)
+                            .rotate((float) getAngle(current, next));
+            moveMarker = (Marker) baiduMap.addOverlay(markerOptions);
+            moveMarker.setRotate((float) getAngle(current, next));
+            return moveMarker;
         }
-        BitmapDescriptor myLocationIcon = BitmapDescriptorFactory
-                .fromResource(R.drawable.wsdk_icon_classic);
-        OverlayOptions markerOptions =
-                new MarkerOptions()
-                        .flat(true)
-                        .anchor(0.5f, 0.5f)
-                        .icon(myLocationIcon)
-                        .position(current)
-                        .rotate((float) getAngle(current, next));
-        moveMarker = (Marker) baiduMap.addOverlay(markerOptions);
-        moveMarker.setRotate((float) getAngle(current, next));
-        return moveMarker;
-    }
 
-    public void addMarker(BaiduMap baiduMap, LatLng currentPoint, int resourceId) {
-        BitmapDescriptor myLocationIcon = BitmapDescriptorFactory
-                .fromResource(resourceId);
-        MarkerOptions markerOptions = new MarkerOptions()
-                .position(currentPoint)
-                .icon(myLocationIcon);
-        baiduMap.addOverlay(markerOptions);
-    }
+        public void addMarker(BaiduMap baiduMap, LatLng currentPoint, int resourceId) {
+            BitmapDescriptor myLocationIcon = BitmapDescriptorFactory
+                    .fromResource(resourceId);
+            MarkerOptions markerOptions = new MarkerOptions()
+                    .position(currentPoint)
+                    .icon(myLocationIcon);
+            baiduMap.addOverlay(markerOptions);
+        }
 
-    //一米的像素点
-    public static int getPixelsOneMeter(Activity activity, int zoomLevel) {
-        DisplayMetrics dm = new DisplayMetrics();
-        activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-        int densityDpi = dm.densityDpi;
-        int scale      = ZOOM_INFO.get(zoomLevel);
-        return (int) ((densityDpi / 2.54) / scale);
-    }
-
-    public static class TrackUtils {
         /**
-         * 绘制历史轨迹
+         * 在地图上绘制折线
          *
          * @param mapView
          * @param points
@@ -192,7 +314,7 @@ public class MyBaiduMapUtils {
          * @param endText
          * @return
          */
-        public Marker[] drawHistoryTrack(MapView mapView, List<LatLng> points, int index, int color, boolean ascend, String endText) {
+        public Marker[] addPolylineOverlay(MapView mapView, List<LatLng> points, int index, int color, boolean ascend, String endText) {
             BaiduMap baiduMap = mapView.getMap();
             Marker[] markers  = new Marker[2];
             baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
@@ -259,6 +381,19 @@ public class MyBaiduMapUtils {
         }
     }
 
+    //一米的像素点
+    public static int getPixelsOneMeter(Activity activity, int zoomLevel) {
+        DisplayMetrics dm = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+        int densityDpi = dm.densityDpi;
+        int scale      = ZOOM_INFO.get(zoomLevel);
+        return (int) ((densityDpi / 2.54) / scale);
+    }
+
+    public static class TrackUtils {
+
+    }
+
     private static void updateMapStatus(BaiduMap baiduMap, LatLng location, float zoom) {
         MapStatus.Builder builder = new MapStatus.Builder();
         MapStatusUpdate   update  = MapStatusUpdateFactory.newMapStatus(builder.target(location).zoom(zoom).build());
@@ -274,5 +409,24 @@ public class MyBaiduMapUtils {
         LatLng location = baiduMap.getMapStatus().target;
         float  zoom     = baiduMap.getMapStatus().zoom - 1.0f;
         updateMapStatus(baiduMap, location, zoom);
+    }
+
+    /**
+     * 校验double数值是否为0
+     *
+     * @param value
+     * @return
+     */
+    public static boolean isEqualToZero(double value) {
+        return Math.abs(value - 0.0) < 0.01 ? true : false;
+    }
+
+    /**
+     * 经纬度是否为(0,0)点
+     *
+     * @return
+     */
+    public static boolean isZeroPoint(double latitude, double longitude) {
+        return isEqualToZero(latitude) && isEqualToZero(longitude);
     }
 }
