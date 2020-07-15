@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">SampleBaiduMap</string>
+
+    <string name="pathPlanError0">没有找到检索结果</string>
+    <string name="pathPlanError1">起终点太近</string>
+    <string name="pathPlanError2">网络连接错误</string>
+    <string name="pathPlanError3">获取骑行路线失败</string>
 </resources>

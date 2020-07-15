@@ -1,6 +1,8 @@
 package com.xt.common;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.CoordinateConverter;
@@ -9,9 +11,14 @@ import com.baidu.trace.Trace;
 import com.baidu.trace.api.analysis.DrivingBehaviorRequest;
 import com.baidu.trace.api.analysis.OnAnalysisListener;
 import com.baidu.trace.api.analysis.StayPointRequest;
+import com.baidu.trace.api.entity.EntityInfo;
 import com.baidu.trace.api.entity.EntityListRequest;
+import com.baidu.trace.api.entity.EntityListResponse;
 import com.baidu.trace.api.entity.FilterCondition;
 import com.baidu.trace.api.entity.OnEntityListener;
+import com.baidu.trace.api.entity.SearchRequest;
+import com.baidu.trace.api.entity.SearchResponse;
+import com.baidu.trace.api.entity.SortBy;
 import com.baidu.trace.api.track.HistoryTrackRequest;
 import com.baidu.trace.api.track.LatestPointRequest;
 import com.baidu.trace.api.track.OnTrackListener;
@@ -21,6 +28,7 @@ import com.baidu.trace.model.CoordType;
 import com.baidu.trace.model.OnTraceListener;
 import com.baidu.trace.model.ProcessOption;
 import com.baidu.trace.model.PushMessage;
+import com.baidu.trace.model.SortType;
 import com.baidu.trace.model.TraceLocation;
 import com.baidu.trace.model.TransportMode;
 import com.xt.samplebaidumap.MyApp;
@@ -204,7 +212,7 @@ public class MyTraceUtils {
         List<TrackPoint> trackPointList = new ArrayList<>();
         if (null != trackPoints) {
             for (TrackPoint trackPoint : trackPoints) {
-                if (!MyBaiduMapUtils.isZeroPoint(trackPoint.getLocation().getLatitude(), trackPoint.getLocation().getLongitude())) {
+                if (!MyBaiduMapUtils.BaiduMapCommonUtils.isZeroPoint(trackPoint.getLocation().getLatitude(), trackPoint.getLocation().getLongitude())) {
                     trackPointList.add(trackPoint);
                 }
             }
@@ -423,5 +431,84 @@ public class MyTraceUtils {
             stayPointRequest.setProcessOption(processOption);
             getTraceClient().queryStayPoint(stayPointRequest, onAnalysisListener);
         }
+    }
+
+    public static LiveData<List<EntityInfo>> queryEntityList(List<String> entityNames) {
+        final MutableLiveData<List<EntityInfo>> liveData = new MutableLiveData<>();
+        //轨迹上传的同时， 可通过轨迹查询接口获取实时轨迹信息：
+        // 请求标识
+        int tag = 4;
+        // 轨迹服务ID
+        long serviceId = getServiceId();
+        //设置活跃时间
+        long activeTime = System.currentTimeMillis() / 1000 - 5 * 60;
+        // 过滤条件
+        FilterCondition filterCondition = new FilterCondition();
+        // 查找当前时间5分钟之内有定位信息上传的entity
+//        filterCondition.setActiveTime(activeTime);
+//        filterCondition.setEntityNames(entityNames);
+        // 返回结果坐标类型
+        CoordType coordTypeOutput = CoordType.bd09ll;
+        // 分页索引
+        int pageIndex = 1;
+        // 分页大小
+        int                     pageSize          = 100;
+        final EntityListRequest entityListRequest = new EntityListRequest(tag, serviceId, filterCondition, coordTypeOutput, pageIndex, pageSize);
+        getTraceClient().queryEntityList(entityListRequest, new OnEntityListener() {
+            @Override
+            public void onEntityListCallback(EntityListResponse entityListResponse) {
+                if (entityListResponse.status == 0) {
+                    List<EntityInfo> entities = entityListResponse.getEntities();
+                    if (entities != null) {
+                        liveData.postValue(entities);
+                    }
+                } else {
+                    //entityListResponse.message
+                }
+            }
+        });
+        return liveData;
+    }
+
+    public static LiveData<List<EntityInfo>> searchEntity(String keyword) {
+        final MutableLiveData<List<EntityInfo>> liveData = new MutableLiveData<>();
+        //轨迹上传的同时， 可通过轨迹查询接口获取实时轨迹信息：
+        // 请求标识
+        int tag = 5;
+        // 轨迹服务ID
+        long serviceId = getServiceId();
+        // 过滤条件
+        FilterCondition filterCondition = new FilterCondition();
+        //设置活跃时间
+        long activeTime = System.currentTimeMillis() / 1000 - 5 * 60;
+        // 查找当前时间5分钟之内有定位信息上传的entity
+//        filterCondition.setActiveTime(activeTime);
+        //排序方法
+        SortBy sortBy = SortBy.buildLocTime(SortType.desc);
+        // 分页索引
+        int pageIndex = 1;
+        // 分页大小
+        int pageSize = 1000;
+        getTraceClient().searchEntity(new SearchRequest(tag, serviceId, keyword, filterCondition, sortBy, CoordType.bd09ll, pageIndex, pageSize), new OnEntityListener() {
+            @Override
+            public void onSearchEntityCallback(SearchResponse searchResponse) {
+                if (searchResponse.status == 0) {
+                    List<EntityInfo> entities = searchResponse.getEntities();
+                    if (entities != null) {
+                        List<EntityInfo> result = new ArrayList<>();
+                        for (EntityInfo entity : entities) {
+                            com.baidu.trace.model.LatLng location = entity.getLatestLocation().getLocation();
+                            if (!(location.latitude == 0 && location.longitude == 0)) {
+                                result.add(entity);
+                            }
+                        }
+                        liveData.postValue(result);
+                    }
+                } else {
+                    //searchResponse.message
+                }
+            }
+        });
+        return liveData;
     }
 }
