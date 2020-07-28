@@ -1,4 +1,4 @@
-package com.xt.common;
+package com.xt.common.baidumap;
 
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BaiduMap.OnPolylineClickListener;

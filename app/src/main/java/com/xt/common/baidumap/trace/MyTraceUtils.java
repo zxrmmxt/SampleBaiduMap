@@ -1,4 +1,4 @@
-package com.xt.common;
+package com.xt.common.baidumap.trace;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -31,13 +31,14 @@ import com.baidu.trace.model.PushMessage;
 import com.baidu.trace.model.SortType;
 import com.baidu.trace.model.TraceLocation;
 import com.baidu.trace.model.TransportMode;
+import com.xt.common.baidumap.map.MyBaiduMapUtils;
 import com.xt.samplebaidumap.MyApp;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.xt.common.MyTraceUtils.TraceServiceManager.getServiceId;
-import static com.xt.common.MyTraceUtils.TraceServiceManager.getTraceClient;
+import static com.xt.common.baidumap.trace.MyTraceUtils.TraceServiceManager.getServiceId;
+import static com.xt.common.baidumap.trace.MyTraceUtils.TraceServiceManager.getTraceClient;
 
 /**
  * @author xt on 2020/7/15 11:07
@@ -433,8 +434,7 @@ public class MyTraceUtils {
         }
     }
 
-    public static LiveData<List<EntityInfo>> queryEntityList(List<String> entityNames) {
-        final MutableLiveData<List<EntityInfo>> liveData = new MutableLiveData<>();
+    public static void queryEntityList(OnEntityListener onEntityListener) {
         //轨迹上传的同时， 可通过轨迹查询接口获取实时轨迹信息：
         // 请求标识
         int tag = 4;
@@ -454,23 +454,10 @@ public class MyTraceUtils {
         // 分页大小
         int                     pageSize          = 100;
         final EntityListRequest entityListRequest = new EntityListRequest(tag, serviceId, filterCondition, coordTypeOutput, pageIndex, pageSize);
-        getTraceClient().queryEntityList(entityListRequest, new OnEntityListener() {
-            @Override
-            public void onEntityListCallback(EntityListResponse entityListResponse) {
-                if (entityListResponse.status == 0) {
-                    List<EntityInfo> entities = entityListResponse.getEntities();
-                    if (entities != null) {
-                        liveData.postValue(entities);
-                    }
-                } else {
-                    //entityListResponse.message
-                }
-            }
-        });
-        return liveData;
+        getTraceClient().queryEntityList(entityListRequest, onEntityListener);
     }
 
-    public static LiveData<List<EntityInfo>> searchEntity(String keyword) {
+    public static void searchEntity(String keyword,OnEntityListener onEntityListener) {
         final MutableLiveData<List<EntityInfo>> liveData = new MutableLiveData<>();
         //轨迹上传的同时， 可通过轨迹查询接口获取实时轨迹信息：
         // 请求标识
@@ -489,26 +476,6 @@ public class MyTraceUtils {
         int pageIndex = 1;
         // 分页大小
         int pageSize = 1000;
-        getTraceClient().searchEntity(new SearchRequest(tag, serviceId, keyword, filterCondition, sortBy, CoordType.bd09ll, pageIndex, pageSize), new OnEntityListener() {
-            @Override
-            public void onSearchEntityCallback(SearchResponse searchResponse) {
-                if (searchResponse.status == 0) {
-                    List<EntityInfo> entities = searchResponse.getEntities();
-                    if (entities != null) {
-                        List<EntityInfo> result = new ArrayList<>();
-                        for (EntityInfo entity : entities) {
-                            com.baidu.trace.model.LatLng location = entity.getLatestLocation().getLocation();
-                            if (!(location.latitude == 0 && location.longitude == 0)) {
-                                result.add(entity);
-                            }
-                        }
-                        liveData.postValue(result);
-                    }
-                } else {
-                    //searchResponse.message
-                }
-            }
-        });
-        return liveData;
+        getTraceClient().searchEntity(new SearchRequest(tag, serviceId, keyword, filterCondition, sortBy, CoordType.bd09ll, pageIndex, pageSize), onEntityListener);
     }
 }

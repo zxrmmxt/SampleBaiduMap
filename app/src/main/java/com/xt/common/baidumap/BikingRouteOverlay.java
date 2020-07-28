@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2016 Baidu, Inc. All Rights Reserved.
  */
-package com.xt.common;
+package com.xt.common.baidumap;
 
 import android.graphics.Color;
 import android.util.Log;
@@ -17,6 +17,7 @@ import com.baidu.mapapi.map.Polyline;
 import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.search.route.BikingRouteLine;
+import com.xt.common.baidumap.map.MyBaiduMapUtils;
 
 import java.util.ArrayList;
 import java.util.List;

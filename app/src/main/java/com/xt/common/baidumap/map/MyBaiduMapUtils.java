@@ -1,8 +1,6 @@
-package com.xt.common;
+package com.xt.common.baidumap.map;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -12,12 +10,9 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.MutableLiveData;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
-import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
@@ -51,7 +46,7 @@ import com.baidu.mapapi.search.route.RoutePlanSearch;
 import com.baidu.mapapi.search.route.TransitRouteResult;
 import com.baidu.mapapi.search.route.WalkingRouteResult;
 import com.baidu.mapsdkplatform.comapi.location.CoordinateType;
-import com.tbruyelle.rxpermissions3.RxPermissions;
+import com.xt.common.baidumap.BikingRouteOverlay;
 import com.xt.samplebaidumap.MyApp;
 import com.xt.samplebaidumap.R;
 

@@ -4,7 +4,7 @@ import android.app.Application;
 
 import com.baidu.mapapi.CoordType;
 import com.baidu.mapapi.SDKInitializer;
-import com.xt.common.MyTraceUtils;
+import com.xt.common.baidumap.trace.MyTraceUtils;
 
 /**
  * @author xt on 2020/7/14 16:07
