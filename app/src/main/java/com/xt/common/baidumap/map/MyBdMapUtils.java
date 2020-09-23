@@ -52,6 +52,7 @@ import com.baidu.mapapi.search.route.WalkingRouteResult;
 import com.baidu.mapsdkplatform.comapi.location.CoordinateType;
 import com.blankj.utilcode.util.Utils;
 import com.xt.common.baidumap.BikingRouteOverlay;
+import com.xt.common.utils.thread.MyThreadUtils;
 import com.xt.samplebaidumap.MyApp;
 import com.xt.samplebaidumap.R;
 
@@ -260,7 +261,12 @@ public class MyBdMapUtils {
                     }
                 }
             });
-            client.start();
+            MyThreadUtils.doBackgroundWork(new Runnable() {
+                @Override
+                public void run() {
+                    client.start();
+                }
+            });
         }
 
         public static void showMyLocation(BaiduMap baiduMap, BDLocation location, BaiduMap.OnMyLocationClickListener onMyLocationClickListener) {
