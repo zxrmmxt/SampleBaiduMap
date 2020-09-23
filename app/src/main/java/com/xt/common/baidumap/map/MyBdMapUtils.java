@@ -1,6 +1,9 @@
 package com.xt.common.baidumap.map;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -10,6 +13,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -46,6 +50,7 @@ import com.baidu.mapapi.search.route.RoutePlanSearch;
 import com.baidu.mapapi.search.route.TransitRouteResult;
 import com.baidu.mapapi.search.route.WalkingRouteResult;
 import com.baidu.mapsdkplatform.comapi.location.CoordinateType;
+import com.blankj.utilcode.util.Utils;
 import com.xt.common.baidumap.BikingRouteOverlay;
 import com.xt.samplebaidumap.MyApp;
 import com.xt.samplebaidumap.R;
@@ -175,6 +180,31 @@ public class MyBdMapUtils {
      * 定位
      */
     public static class MyLocationUtils {
+        /**
+         * Return whether <em>you</em> have been granted the permissions.
+         *
+         * @param permissions The permissions.
+         * @return {@code true}: yes<br>{@code false}: no
+         */
+        private static boolean isGranted(final String... permissions) {
+            for (String permission : permissions) {
+                if (!isGranted(permission)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static boolean isGranted(final String permission) {
+            return Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+                    || PackageManager.PERMISSION_GRANTED
+                    == ContextCompat.checkSelfPermission(Utils.getApp(), permission);
+        }
+
+        public static boolean isLocationPermissionGranted(){
+            return isGranted(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+
         @NonNull
         private static LocationClientOption getLocationClientOption() {
             LocationClientOption clientOption = new LocationClientOption();
