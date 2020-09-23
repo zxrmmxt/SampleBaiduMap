@@ -17,7 +17,7 @@ import com.baidu.mapapi.map.Polyline;
 import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.search.route.BikingRouteLine;
-import com.xt.common.baidumap.map.MyBaiduMapUtils;
+import com.xt.common.baidumap.map.MyBdMapUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -165,10 +165,10 @@ public class BikingRouteOverlay extends OverlayManager {
                 if (marker.getExtraInfo() != null) {
                     onRouteNodeClick(marker.getExtraInfo().getInt("index"));
                 }
-                if (MyBaiduMapUtils.BaiduMapCommonUtils.positionEquals(marker.getPosition(), mRouteLine.getStarting().getLocation())) {
+                if (MyBdMapUtils.BdMapCommonUtils.positionEquals(marker.getPosition(), mRouteLine.getStarting().getLocation())) {
                     onStartClick();
                 }
-                if (MyBaiduMapUtils.BaiduMapCommonUtils.positionEquals(marker.getPosition(), mRouteLine.getTerminal().getLocation())) {
+                if (MyBdMapUtils.BdMapCommonUtils.positionEquals(marker.getPosition(), mRouteLine.getTerminal().getLocation())) {
                     onEndClick();
                 }
             }

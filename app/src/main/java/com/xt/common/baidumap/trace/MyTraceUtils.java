@@ -1,7 +1,6 @@
 package com.xt.common.baidumap.trace;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.baidu.mapapi.model.LatLng;
@@ -13,11 +12,9 @@ import com.baidu.trace.api.analysis.OnAnalysisListener;
 import com.baidu.trace.api.analysis.StayPointRequest;
 import com.baidu.trace.api.entity.EntityInfo;
 import com.baidu.trace.api.entity.EntityListRequest;
-import com.baidu.trace.api.entity.EntityListResponse;
 import com.baidu.trace.api.entity.FilterCondition;
 import com.baidu.trace.api.entity.OnEntityListener;
 import com.baidu.trace.api.entity.SearchRequest;
-import com.baidu.trace.api.entity.SearchResponse;
 import com.baidu.trace.api.entity.SortBy;
 import com.baidu.trace.api.track.HistoryTrackRequest;
 import com.baidu.trace.api.track.LatestPointRequest;
@@ -31,7 +28,7 @@ import com.baidu.trace.model.PushMessage;
 import com.baidu.trace.model.SortType;
 import com.baidu.trace.model.TraceLocation;
 import com.baidu.trace.model.TransportMode;
-import com.xt.common.baidumap.map.MyBaiduMapUtils;
+import com.xt.common.baidumap.map.MyBdMapUtils;
 import com.xt.samplebaidumap.MyApp;
 
 import java.util.ArrayList;
@@ -213,7 +210,7 @@ public class MyTraceUtils {
         List<TrackPoint> trackPointList = new ArrayList<>();
         if (null != trackPoints) {
             for (TrackPoint trackPoint : trackPoints) {
-                if (!MyBaiduMapUtils.BaiduMapCommonUtils.isZeroPoint(trackPoint.getLocation().getLatitude(), trackPoint.getLocation().getLongitude())) {
+                if (!MyBdMapUtils.BdMapCommonUtils.isZeroPoint(trackPoint.getLocation().getLatitude(), trackPoint.getLocation().getLongitude())) {
                     trackPointList.add(trackPoint);
                 }
             }

@@ -56,8 +56,8 @@ import java.util.List;
  * @author xt on 2020/7/14 14:36
  * 使用百度地图SDK的工具类
  */
-public class MyBaiduMapUtils {
-    public static class BaiduMapCommonUtils {
+public class MyBdMapUtils {
+    public static class BdMapCommonUtils {
         public static final SparseIntArray ZOOM_INFO      = new SparseIntArray();
         /**
          * 3~21
@@ -166,7 +166,7 @@ public class MyBaiduMapUtils {
             DisplayMetrics dm = new DisplayMetrics();
             activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
             int densityDpi = dm.densityDpi;
-            int scale      = BaiduMapCommonUtils.ZOOM_INFO.get(zoomLevel);
+            int scale      = BdMapCommonUtils.ZOOM_INFO.get(zoomLevel);
             return (int) ((densityDpi / 2.54) / scale);
         }
     }
@@ -222,7 +222,7 @@ public class MyBaiduMapUtils {
                     client.unRegisterLocationListener(this);
                     double latitude  = bdLocation.getLatitude();
                     double longitude = bdLocation.getLongitude();
-                    if (!BaiduMapCommonUtils.isZeroPoint(latitude, longitude)) {
+                    if (!BdMapCommonUtils.isZeroPoint(latitude, longitude)) {
 
                     }
                 }
@@ -255,7 +255,7 @@ public class MyBaiduMapUtils {
             {
                 baiduMap.setOnMyLocationClickListener(onMyLocationClickListener);
             }
-            BaiduMapCommonUtils.updateMapStatus(baiduMap, new LatLng(location.getLatitude(), location.getLongitude()));
+            BdMapCommonUtils.updateMapStatus(baiduMap, new LatLng(location.getLatitude(), location.getLongitude()));
         }
     }
 
@@ -447,7 +447,7 @@ public class MyBaiduMapUtils {
                         .zIndex(9).draggable(true).title(startTitle);
                 Overlay overlay = baiduMap.addOverlay(startOptions);
                 markers[0] = (Marker) overlay;
-                BaiduMapCommonUtils.updateMapStatus(baiduMap, points.get(0), BaiduMapCommonUtils.ZOOM_BAIDU_MAP);
+                BdMapCommonUtils.updateMapStatus(baiduMap, points.get(0), BdMapCommonUtils.ZOOM_BAIDU_MAP);
                 return markers;
             }
             LatLng startPoint;
