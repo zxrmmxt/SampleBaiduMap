@@ -212,7 +212,7 @@ public class MyBdMapUtils {
          *
          * @return
          */
-        public static void startLocation() {
+        public static void startLocation(BDAbstractLocationListener bdAbstractLocationListener) {
             final LocationClient client = new LocationClient(MyApp.sApp);
             client.setLocOption(getLocationClientOption());
             client.registerLocationListener(new BDAbstractLocationListener() {
@@ -220,10 +220,13 @@ public class MyBdMapUtils {
                 public void onReceiveLocation(BDLocation bdLocation) {
                     client.stop();
                     client.unRegisterLocationListener(this);
-                    double latitude  = bdLocation.getLatitude();
+                    /*double latitude  = bdLocation.getLatitude();
                     double longitude = bdLocation.getLongitude();
                     if (!BdMapCommonUtils.isZeroPoint(latitude, longitude)) {
 
+                    }*/
+                    if (bdAbstractLocationListener != null) {
+                        bdAbstractLocationListener.onReceiveLocation(bdLocation);
                     }
                 }
             });
