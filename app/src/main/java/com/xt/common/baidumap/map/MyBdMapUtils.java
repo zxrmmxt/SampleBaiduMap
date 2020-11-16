@@ -10,7 +10,9 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.SparseIntArray;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ZoomControls;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -35,6 +37,7 @@ import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.Overlay;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.PolylineOptions;
+import com.baidu.mapapi.map.TextureMapView;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
 import com.baidu.mapapi.search.core.SearchResult;
@@ -64,11 +67,11 @@ import java.util.List;
  */
 public class MyBdMapUtils {
     public static class BdMapCommonUtils {
-        public static final SparseIntArray ZOOM_INFO      = new SparseIntArray();
+        public static final SparseIntArray ZOOM_INFO = new SparseIntArray();
         /**
          * 3~21
          */
-        public static final float          ZOOM_BAIDU_MAP = 15f;
+        public static final float ZOOM_BAIDU_MAP = 15f;
 
         static {
             ZOOM_INFO.put(22, 2);
@@ -95,7 +98,7 @@ public class MyBdMapUtils {
 
         private static void updateMapStatus(BaiduMap baiduMap, LatLng centerLocation, float zoom) {
             MapStatus.Builder builder = new MapStatus.Builder();
-            MapStatusUpdate   update  = MapStatusUpdateFactory.newMapStatus(builder.target(centerLocation).zoom(zoom).build());
+            MapStatusUpdate update = MapStatusUpdateFactory.newMapStatus(builder.target(centerLocation).zoom(zoom).build());
             if (baiduMap.getProjection() != null) {
                 baiduMap.animateMapStatus(update);
             } else if (baiduMap.getMapStatus() == null) {
@@ -107,9 +110,9 @@ public class MyBdMapUtils {
             updateMapStatus(baiduMap, centerLocation, ZOOM_BAIDU_MAP);
         }
 
-        public void refreshMap(BaiduMap baiduMap) {
+        public static void refreshMap(BaiduMap baiduMap) {
             LatLng location = baiduMap.getMapStatus().target;
-            float  zoom     = baiduMap.getMapStatus().zoom - 1.0f;
+            float zoom = baiduMap.getMapStatus().zoom - 1.0f;
             updateMapStatus(baiduMap, location, zoom);
         }
 
@@ -172,8 +175,40 @@ public class MyBdMapUtils {
             DisplayMetrics dm = new DisplayMetrics();
             activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
             int densityDpi = dm.densityDpi;
-            int scale      = BdMapCommonUtils.ZOOM_INFO.get(zoomLevel);
+            int scale = BdMapCommonUtils.ZOOM_INFO.get(zoomLevel);
             return (int) ((densityDpi / 2.54) / scale);
+        }
+
+        public static void showScaleControl(TextureMapView mapView, boolean isShow) {
+            mapView.showScaleControl(isShow);
+        }
+
+        public static void showZoomControls(TextureMapView mapView, boolean isShow) {
+            mapView.showZoomControls(isShow);
+        }
+
+        public static void showBdLogo(TextureMapView mapView, boolean isShow) {
+            // 隐藏logo
+            View child = mapView.getChildAt(1);
+            if ((child instanceof ImageView) || (child instanceof ZoomControls)) {
+                if (isShow) {
+                    child.setVisibility(View.VISIBLE);
+                } else {
+                    child.setVisibility(View.INVISIBLE);
+                }
+            }
+        }
+
+        public static void initBdMap(TextureMapView bdMapView){
+            MyBdMapUtils.BdMapCommonUtils.showBdLogo(bdMapView,false);
+            MyBdMapUtils.BdMapCommonUtils.showScaleControl(bdMapView,false);
+            MyBdMapUtils.BdMapCommonUtils.showZoomControls(bdMapView,false);
+
+            refreshMap(bdMapView.getMap());
+        }
+
+        public static void setOnMapClickListener(BaiduMap baiduMap,BaiduMap.OnMapClickListener onMapClickListener){
+            baiduMap.setOnMapClickListener(onMapClickListener);
         }
     }
 
@@ -202,7 +237,7 @@ public class MyBdMapUtils {
                     == ContextCompat.checkSelfPermission(Utils.getApp(), permission);
         }
 
-        public static boolean isLocationPermissionGranted(){
+        public static boolean isLocationPermissionGranted() {
             return isGranted(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION);
         }
 
@@ -244,7 +279,7 @@ public class MyBdMapUtils {
          * @return
          */
         public static void startLocation(BDAbstractLocationListener bdAbstractLocationListener) {
-            final LocationClient client = new LocationClient(MyApp.sApp);
+            final LocationClient client = new LocationClient(Utils.getApp());
             client.setLocOption(getLocationClientOption());
             client.registerLocationListener(new BDAbstractLocationListener() {
                 @Override
@@ -368,14 +403,14 @@ public class MyBdMapUtils {
                 return;
             }
             final LatLng startPoint = latLngList.get(index);
-            final LatLng endPoint   = latLngList.get(index + 1);
+            final LatLng endPoint = latLngList.get(index + 1);
             moveMarker.setPosition(startPoint);
             moveMarker.setRotate((float) getAngle(startPoint, endPoint));
             //是不是正向的标示
-            boolean      isReverse     = (startPoint.latitude > endPoint.latitude);
-            final double slope         = getSlope(startPoint, endPoint);
-            double       interception  = getInterception(slope, startPoint);
-            double       xMoveDistance = getXMoveDistance(slope);
+            boolean isReverse = (startPoint.latitude > endPoint.latitude);
+            final double slope = getSlope(startPoint, endPoint);
+            double interception = getInterception(slope, startPoint);
+            double xMoveDistance = getXMoveDistance(slope);
             xMoveDistance = isReverse ? xMoveDistance : (-1 * xMoveDistance);
             for (double j = startPoint.latitude; ((j > endPoint.latitude) == isReverse); j = j - xMoveDistance) {
                 LatLng latLng;
@@ -456,31 +491,31 @@ public class MyBdMapUtils {
          */
         public Marker[] addPolylineOverlay(MapView mapView, List<LatLng> points, int index, int color, boolean ascend, String endText) {
             BaiduMap baiduMap = mapView.getMap();
-            Marker[] markers  = new Marker[2];
+            Marker[] markers = new Marker[2];
             baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
             baiduMap.setBuildingsEnabled(false);
             if (points == null || points.size() == 0) {
                 return markers;
             }
-            String   pathIndex = (index + 1) + "";
-            View     startView = View.inflate(mapView.getContext(), R.layout.baidu_start_end, null);
-            View     iv_start  = startView.findViewById(R.id.baidu_start_end_iv);
-            TextView tv_start  = (TextView) startView.findViewById(R.id.baidu_start_end_tv);
+            String pathIndex = (index + 1) + "";
+            View startView = View.inflate(mapView.getContext(), R.layout.baidu_start_end, null);
+            View iv_start = startView.findViewById(R.id.baidu_start_end_iv);
+            TextView tv_start = (TextView) startView.findViewById(R.id.baidu_start_end_tv);
             iv_start.setBackgroundResource(R.drawable.icon_start_walk);
             tv_start.setText(pathIndex);
             BitmapDescriptor startBitmap = BitmapDescriptorFactory.fromView(startView);
-            View             endView     = View.inflate(mapView.getContext(), R.layout.baidu_start_end, null);
-            View             iv_end      = endView.findViewById(R.id.baidu_start_end_iv);
-            TextView         tv_end      = (TextView) endView.findViewById(R.id.baidu_start_end_tv);
+            View endView = View.inflate(mapView.getContext(), R.layout.baidu_start_end, null);
+            View iv_end = endView.findViewById(R.id.baidu_start_end_iv);
+            TextView tv_end = (TextView) endView.findViewById(R.id.baidu_start_end_tv);
             iv_end.setBackgroundResource(R.drawable.icon_arrive_walk);
             if (TextUtils.isEmpty(endText)) {
                 tv_end.setText(pathIndex);
             } else {
                 tv_end.setText(endText);
             }
-            BitmapDescriptor endBitmap  = BitmapDescriptorFactory.fromView(endView);
-            String           startTitle = "起点-" + pathIndex;
-            String           endTitle   = "终点-" + pathIndex;
+            BitmapDescriptor endBitmap = BitmapDescriptorFactory.fromView(endView);
+            String startTitle = "起点-" + pathIndex;
+            String endTitle = "终点-" + pathIndex;
             if (points.size() == 1) {
                 OverlayOptions startOptions = new MarkerOptions().position(points.get(0)).icon(startBitmap)
                         .zIndex(9).draggable(true).title(startTitle);
@@ -512,7 +547,7 @@ public class MyBdMapUtils {
                     .color(color).points(points);
 
             Marker startMarker = (Marker) baiduMap.addOverlay(startOptions);
-            Marker endMarker   = (Marker) baiduMap.addOverlay(endOptions);
+            Marker endMarker = (Marker) baiduMap.addOverlay(endOptions);
             markers[0] = startMarker;
             markers[1] = endMarker;
             //路线覆盖物
@@ -586,8 +621,8 @@ public class MyBdMapUtils {
                             }
 
                             {
-                                BikingRouteOverlay    bikingRouteOverlay = new MyBikingRouteOverlay(baiduMap);
-                                List<BikingRouteLine> routeLines         = bikingRouteResult.getRouteLines();
+                                BikingRouteOverlay bikingRouteOverlay = new MyBikingRouteOverlay(baiduMap);
+                                List<BikingRouteLine> routeLines = bikingRouteResult.getRouteLines();
                                 bikingRouteOverlay.setData(routeLines.get(0));
                                 bikingRouteOverlay.addToMap();
                                 bikingRouteOverlay.zoomToSpan();
@@ -599,8 +634,8 @@ public class MyBdMapUtils {
             PlanNode stNode = PlanNode.withLocation(start);
             PlanNode enNode = PlanNode.withLocation(stop);
             routePlanSearch.bikingSearch((new BikingRoutePlanOption())
-                                                 .from(stNode)
-                                                 .to(enNode));
+                    .from(stNode)
+                    .to(enNode));
         }
     }
 

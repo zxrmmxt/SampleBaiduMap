@@ -28,6 +28,7 @@ import com.baidu.trace.model.PushMessage;
 import com.baidu.trace.model.SortType;
 import com.baidu.trace.model.TraceLocation;
 import com.baidu.trace.model.TransportMode;
+import com.blankj.utilcode.util.Utils;
 import com.xt.common.baidumap.map.MyBdMapUtils;
 import com.xt.samplebaidumap.MyApp;
 
@@ -67,7 +68,7 @@ public class MyTraceUtils {
             // 初始化轨迹服务
             sTrace = new Trace(getServiceId(), entityName, isNeedObjectStorage);
             // 初始化轨迹服务客户端
-            sTraceClient = new LBSTraceClient(MyApp.sApp);
+            sTraceClient = new LBSTraceClient(Utils.getApp());
             sOnTraceListener = new OnTraceListener() {
                 @Override
                 public void onBindServiceCallback(int i, String s) {
