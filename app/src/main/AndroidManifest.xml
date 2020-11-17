@@ -12,6 +12,9 @@
     <!-- 写外置存储。如果开发者使用了离线地图，并且数据写在外置存储区域，则需要申请该权限 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
+    <!--华为手机需要这个权限的运行时权限才能使用百度定位SDK-->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
     <application
         android:name=".MyApp"
         android:allowBackup="true"
@@ -26,8 +29,7 @@
         <service
             android:name="com.baidu.trace.LBSTraceService"
             android:enabled="true"
-            android:process=":remote">
-        </service>
+            android:process=":remote"></service>
 
         <activity android:name=".MainActivity">
             <intent-filter>

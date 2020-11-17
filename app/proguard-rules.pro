@@ -26,4 +26,5 @@
 
 -keep class com.baidu.** {*;}
 -keep class mapsdkvi.com.** {*;}
+-keep class vi.com.** {*;}
 -dontwarn com.baidu.**
