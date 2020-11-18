@@ -210,6 +210,18 @@ public class MyBdMapUtils {
         public static void setOnMapClickListener(BaiduMap baiduMap,BaiduMap.OnMapClickListener onMapClickListener){
             baiduMap.setOnMapClickListener(onMapClickListener);
         }
+
+        public static LatLng getLatLng(BDLocation bdLocation) {
+            return new LatLng(bdLocation.getLatitude(), bdLocation.getLongitude());
+        }
+
+        public static void showLocation(BaiduMap baiduMap, LatLng latLng,int resourceId) {
+            OverlayUtils.addOverlay(baiduMap, latLng, resourceId);
+            updateMapStatus(baiduMap, latLng);
+        }
+        public static void showLocation(BaiduMap baiduMap, LatLng latLng) {
+            showLocation(baiduMap, latLng, R.drawable.wsdk_drawable_rg_ic_car3d);
+        }
     }
 
     /**
@@ -304,32 +316,9 @@ public class MyBdMapUtils {
             });
         }
 
-        public static void showMyLocation(BaiduMap baiduMap, BDLocation location, BaiduMap.OnMyLocationClickListener onMyLocationClickListener) {
-            if (location == null) {
-                return;
-            }
-            {
-                // 当不需要定位图层时关闭定位图层
-                baiduMap.setMyLocationEnabled(true);
-            }
-            {
-                //位置
-                MyLocationData locData = new MyLocationData.Builder()
-//                    .accuracy(location.getRadius())
-                        // 此处设置开发者获取到的方向信息，顺时针0-360
-                        .direction(location.getDirection()).latitude(location.getLatitude())
-                        .longitude(location.getLongitude()).build();
-                baiduMap.setMyLocationData(locData);
-            }
-            {
-                // 设置定位图层的配置（定位模式，是否允许方向信息，用户自定义定位图标）
-                MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL, true, null);
-                baiduMap.setMyLocationConfiguration(config);
-            }
-            {
-                baiduMap.setOnMyLocationClickListener(onMyLocationClickListener);
-            }
-            BdMapCommonUtils.updateMapStatus(baiduMap, new LatLng(location.getLatitude(), location.getLongitude()));
+        public static void showMyLocation(BaiduMap baiduMap, BDLocation bdLocation) {
+            LatLng latLng = MyBdMapUtils.BdMapCommonUtils.getLatLng(bdLocation);
+            BdMapCommonUtils.showLocation(baiduMap,latLng);
         }
     }
 
@@ -449,7 +438,7 @@ public class MyBdMapUtils {
     }
 
     public static class OverlayUtils {
-        public GroundOverlay addOverlay(BaiduMap baiduMap, LatLng currentPoint, BitmapDescriptor icon, Bundle bundle, int width, int height) {
+        public static GroundOverlay addOverlay(BaiduMap baiduMap, LatLng currentPoint, BitmapDescriptor icon, Bundle bundle, int width, int height) {
             OverlayOptions overlayOptions = new GroundOverlayOptions().position(currentPoint)
                     .image(icon).zIndex(9).dimensions(width, height);
             GroundOverlay groundOverlay = (GroundOverlay) baiduMap.addOverlay(overlayOptions);
@@ -459,7 +448,7 @@ public class MyBdMapUtils {
             return groundOverlay;
         }
 
-        public Marker addOverlay(BaiduMap baiduMap, LatLng currentPoint, BitmapDescriptor icon, Bundle bundle) {
+        public static Marker addOverlay(BaiduMap baiduMap, LatLng currentPoint, BitmapDescriptor icon, Bundle bundle) {
             OverlayOptions overlayOptions = new MarkerOptions().position(currentPoint)
                     .icon(icon).zIndex(9).animateType(MarkerOptions.MarkerAnimateType.none).draggable(true).perspective(true).flat(false);
             Marker marker = (Marker) baiduMap.addOverlay(overlayOptions);
@@ -469,7 +458,7 @@ public class MyBdMapUtils {
             return marker;
         }
 
-        public void addOverlay(BaiduMap baiduMap, LatLng currentPoint, int resourceId) {
+        public static void addOverlay(BaiduMap baiduMap, LatLng currentPoint, int resourceId) {
             BitmapDescriptor myLocationIcon = BitmapDescriptorFactory
                     .fromResource(resourceId);
             MarkerOptions markerOptions = new MarkerOptions()
@@ -489,7 +478,7 @@ public class MyBdMapUtils {
          * @param endText
          * @return
          */
-        public Marker[] addPolylineOverlay(MapView mapView, List<LatLng> points, int index, int color, boolean ascend, String endText) {
+        public static Marker[] addPolylineOverlay(MapView mapView, List<LatLng> points, int index, int color, boolean ascend, String endText) {
             BaiduMap baiduMap = mapView.getMap();
             Marker[] markers = new Marker[2];
             baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
