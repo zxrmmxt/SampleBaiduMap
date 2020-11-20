@@ -199,15 +199,15 @@ public class MyBdMapUtils {
             }
         }
 
-        public static void initBdMap(TextureMapView bdMapView){
-            MyBdMapUtils.BdMapCommonUtils.showBdLogo(bdMapView,false);
-            MyBdMapUtils.BdMapCommonUtils.showScaleControl(bdMapView,false);
-            MyBdMapUtils.BdMapCommonUtils.showZoomControls(bdMapView,false);
+        public static void initBdMap(TextureMapView bdMapView) {
+            MyBdMapUtils.BdMapCommonUtils.showBdLogo(bdMapView, false);
+            MyBdMapUtils.BdMapCommonUtils.showScaleControl(bdMapView, false);
+            MyBdMapUtils.BdMapCommonUtils.showZoomControls(bdMapView, false);
 
             refreshMap(bdMapView.getMap());
         }
 
-        public static void setOnMapClickListener(BaiduMap baiduMap,BaiduMap.OnMapClickListener onMapClickListener){
+        public static void setOnMapClickListener(BaiduMap baiduMap, BaiduMap.OnMapClickListener onMapClickListener) {
             baiduMap.setOnMapClickListener(onMapClickListener);
         }
 
@@ -215,12 +215,14 @@ public class MyBdMapUtils {
             return new LatLng(bdLocation.getLatitude(), bdLocation.getLongitude());
         }
 
-        public static void showLocation(BaiduMap baiduMap, LatLng latLng,int resourceId) {
-            OverlayUtils.addOverlay(baiduMap, latLng, resourceId);
+        public static Overlay showLocation(BaiduMap baiduMap, LatLng latLng, int resourceId) {
+            Overlay overlay = OverlayUtils.addOverlay(baiduMap, latLng, resourceId);
             updateMapStatus(baiduMap, latLng);
+            return overlay;
         }
-        public static void showLocation(BaiduMap baiduMap, LatLng latLng) {
-            showLocation(baiduMap, latLng, R.drawable.wsdk_drawable_rg_ic_car3d);
+
+        public static Overlay showLocation(BaiduMap baiduMap, LatLng latLng) {
+            return showLocation(baiduMap, latLng, R.drawable.wsdk_drawable_rg_ic_car3d);
         }
     }
 
@@ -316,9 +318,9 @@ public class MyBdMapUtils {
             });
         }
 
-        public static void showMyLocation(BaiduMap baiduMap, BDLocation bdLocation) {
+        public static Overlay showMyLocation(BaiduMap baiduMap, BDLocation bdLocation) {
             LatLng latLng = MyBdMapUtils.BdMapCommonUtils.getLatLng(bdLocation);
-            BdMapCommonUtils.showLocation(baiduMap,latLng);
+            return BdMapCommonUtils.showLocation(baiduMap, latLng);
         }
     }
 
@@ -458,13 +460,13 @@ public class MyBdMapUtils {
             return marker;
         }
 
-        public static void addOverlay(BaiduMap baiduMap, LatLng currentPoint, int resourceId) {
+        public static Overlay addOverlay(BaiduMap baiduMap, LatLng currentPoint, int resourceId) {
             BitmapDescriptor myLocationIcon = BitmapDescriptorFactory
                     .fromResource(resourceId);
             MarkerOptions markerOptions = new MarkerOptions()
                     .position(currentPoint)
                     .icon(myLocationIcon);
-            baiduMap.addOverlay(markerOptions);
+            return baiduMap.addOverlay(markerOptions);
         }
 
         /**
