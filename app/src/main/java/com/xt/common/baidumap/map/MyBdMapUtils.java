@@ -140,7 +140,7 @@ public class MyBdMapUtils {
          * @return
          */
         public static boolean isEqualToZero(double value) {
-            return Math.abs(value - 0.0) < 0.01 ? true : false;
+            return Math.abs(value - 0.0) < 0.01;
         }
 
         /**
@@ -150,6 +150,15 @@ public class MyBdMapUtils {
          */
         public static boolean isZeroPoint(double latitude, double longitude) {
             return isEqualToZero(latitude) && isEqualToZero(longitude);
+        }
+
+        /**
+         * 经纬度是否为(0,0)点
+         *
+         * @return
+         */
+        public static boolean isZeroPoint(LatLng latLng) {
+            return isZeroPoint(latLng.latitude, latLng.longitude);
         }
 
         public static BitmapDescriptor getBitmapDescriptor(int imageResourceId) {
