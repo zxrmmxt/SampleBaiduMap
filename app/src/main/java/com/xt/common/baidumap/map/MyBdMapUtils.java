@@ -489,7 +489,7 @@ public class MyBdMapUtils {
          * @param endText
          * @return
          */
-        public static Marker[] addPolylineOverlay(MapView mapView, List<LatLng> points, int index, int color, boolean ascend, String endText) {
+        public static Marker[] addPolylineOverlay(TextureMapView mapView, List<LatLng> points, int index, int color, boolean ascend, String endText) {
             BaiduMap baiduMap = mapView.getMap();
             Marker[] markers = new Marker[2];
             baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
