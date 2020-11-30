@@ -6,12 +6,10 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.SparseIntArray;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.ZoomControls;
 
 import androidx.annotation.NonNull;
@@ -24,19 +22,20 @@ import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.Circle;
+import com.baidu.mapapi.map.CircleOptions;
 import com.baidu.mapapi.map.GroundOverlay;
 import com.baidu.mapapi.map.GroundOverlayOptions;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
-import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
-import com.baidu.mapapi.map.MyLocationConfiguration;
-import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.Overlay;
 import com.baidu.mapapi.map.OverlayOptions;
+import com.baidu.mapapi.map.Polyline;
 import com.baidu.mapapi.map.PolylineOptions;
+import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.map.TextureMapView;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
@@ -56,7 +55,6 @@ import com.baidu.mapsdkplatform.comapi.location.CoordinateType;
 import com.blankj.utilcode.util.Utils;
 import com.xt.common.baidumap.BikingRouteOverlay;
 import com.xt.common.utils.thread.MyThreadUtils;
-import com.xt.samplebaidumap.MyApp;
 import com.xt.samplebaidumap.R;
 
 import java.util.List;
@@ -237,7 +235,7 @@ public class MyBdMapUtils {
         }
 
         public static Overlay showLocation(BaiduMap baiduMap, LatLng latLng, int resourceId) {
-            Overlay overlay = OverlayUtils.addOverlay(baiduMap, latLng, resourceId);
+            Overlay overlay = OverlayUtils.addMarkerOverlay(baiduMap, latLng, resourceId);
             updateMapStatus(baiduMap, latLng);
             return overlay;
         }
@@ -461,8 +459,16 @@ public class MyBdMapUtils {
     }
 
     public static class OverlayUtils {
-        public static GroundOverlay addOverlay(BaiduMap baiduMap, LatLng currentPoint, BitmapDescriptor icon, Bundle bundle, int width, int height) {
-            OverlayOptions overlayOptions = new GroundOverlayOptions().position(currentPoint)
+        public static Circle addCircleOverlay(BaiduMap baiduMap, LatLng center, int radius) {
+            CircleOptions circleOptions = new CircleOptions().fillColor(0x4C5C9EFF);
+            circleOptions.stroke(new Stroke(2, 0xFF5C9EFF))
+                    .center(center)
+                    .radius(radius);
+            return (Circle) baiduMap.addOverlay(circleOptions);
+        }
+
+        public static GroundOverlay addGroundOverlay(BaiduMap baiduMap, LatLng latLng, BitmapDescriptor icon, Bundle bundle, int width, int height) {
+            OverlayOptions overlayOptions = new GroundOverlayOptions().position(latLng)
                     .image(icon).zIndex(9).dimensions(width, height);
             GroundOverlay groundOverlay = (GroundOverlay) baiduMap.addOverlay(overlayOptions);
             if (null != bundle) {
@@ -471,8 +477,8 @@ public class MyBdMapUtils {
             return groundOverlay;
         }
 
-        public static Marker addOverlay(BaiduMap baiduMap, LatLng currentPoint, BitmapDescriptor icon, Bundle bundle) {
-            OverlayOptions overlayOptions = new MarkerOptions().position(currentPoint)
+        public static Marker addMarkerOverlay(BaiduMap baiduMap, LatLng position, BitmapDescriptor icon, Bundle bundle) {
+            OverlayOptions overlayOptions = new MarkerOptions().position(position)
                     .icon(icon).zIndex(9).animateType(MarkerOptions.MarkerAnimateType.none).draggable(true).perspective(true).flat(false);
             Marker marker = (Marker) baiduMap.addOverlay(overlayOptions);
             if (null != bundle) {
@@ -481,13 +487,13 @@ public class MyBdMapUtils {
             return marker;
         }
 
-        public static Overlay addOverlay(BaiduMap baiduMap, LatLng currentPoint, int resourceId) {
+        public static Marker addMarkerOverlay(BaiduMap baiduMap, LatLng currentPoint, int resourceId) {
             BitmapDescriptor myLocationIcon = BitmapDescriptorFactory
                     .fromResource(resourceId);
             MarkerOptions markerOptions = new MarkerOptions()
                     .position(currentPoint)
                     .icon(myLocationIcon);
-            return baiduMap.addOverlay(markerOptions);
+            return (Marker) baiduMap.addOverlay(markerOptions);
         }
 
         /**
@@ -495,76 +501,19 @@ public class MyBdMapUtils {
          *
          * @param mapView
          * @param points
-         * @param index
          * @param color
-         * @param ascend  升序或降序
-         * @param endText
          * @return
          */
-        public static Marker[] addPolylineOverlay(TextureMapView mapView, List<LatLng> points, int index, int color, boolean ascend, String endText) {
+        public static Polyline addPolylineOverlay(TextureMapView mapView, List<LatLng> points, int color) {
             BaiduMap baiduMap = mapView.getMap();
-            Marker[] markers = new Marker[2];
             baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
             baiduMap.setBuildingsEnabled(false);
-            if (points == null || points.size() == 0) {
-                return markers;
-            }
-            String pathIndex = (index + 1) + "";
-            View startView = View.inflate(mapView.getContext(), R.layout.baidu_start_end, null);
-            View iv_start = startView.findViewById(R.id.baidu_start_end_iv);
-            TextView tv_start = (TextView) startView.findViewById(R.id.baidu_start_end_tv);
-            iv_start.setBackgroundResource(R.drawable.icon_start_walk);
-            tv_start.setText(pathIndex);
-            BitmapDescriptor startBitmap = BitmapDescriptorFactory.fromView(startView);
-            View endView = View.inflate(mapView.getContext(), R.layout.baidu_start_end, null);
-            View iv_end = endView.findViewById(R.id.baidu_start_end_iv);
-            TextView tv_end = (TextView) endView.findViewById(R.id.baidu_start_end_tv);
-            iv_end.setBackgroundResource(R.drawable.icon_arrive_walk);
-            if (TextUtils.isEmpty(endText)) {
-                tv_end.setText(pathIndex);
-            } else {
-                tv_end.setText(endText);
-            }
-            BitmapDescriptor endBitmap = BitmapDescriptorFactory.fromView(endView);
-            String startTitle = "起点-" + pathIndex;
-            String endTitle = "终点-" + pathIndex;
-            if (points.size() == 1) {
-                OverlayOptions startOptions = new MarkerOptions().position(points.get(0)).icon(startBitmap)
-                        .zIndex(9).draggable(true).title(startTitle);
-                Overlay overlay = baiduMap.addOverlay(startOptions);
-                markers[0] = (Marker) overlay;
-                BdMapCommonUtils.updateMapStatus(baiduMap, points.get(0), BdMapCommonUtils.ZOOM_BAIDU_MAP);
-                return markers;
-            }
-            LatLng startPoint;
-            LatLng endPoint;
-            if (ascend) {
-                startPoint = points.get(0);
-                endPoint = points.get(points.size() - 1);
-            } else {
-                startPoint = points.get(points.size() - 1);
-                endPoint = points.get(0);
-            }
-
-            // 添加起点图标
-            OverlayOptions startOptions = new MarkerOptions()
-                    .position(startPoint).icon(startBitmap)
-                    .zIndex(9).draggable(true).title(startTitle);
-            // 添加终点图标
-            OverlayOptions endOptions = new MarkerOptions().position(endPoint)
-                    .icon(endBitmap).zIndex(9).draggable(true).title(endTitle);
 
             // 添加路线（轨迹）
             OverlayOptions polylineOptions = new PolylineOptions().width(10)
                     .color(color).points(points);
-
-            Marker startMarker = (Marker) baiduMap.addOverlay(startOptions);
-            Marker endMarker = (Marker) baiduMap.addOverlay(endOptions);
-            markers[0] = startMarker;
-            markers[1] = endMarker;
             //路线覆盖物
-            Overlay polylineOverlay = baiduMap.addOverlay(polylineOptions);
-            return markers;
+            return (Polyline) baiduMap.addOverlay(polylineOptions);
         }
     }
 
