@@ -224,6 +224,18 @@ public class MyBdMapUtils {
             return new LatLng(bdLocation.getLatitude(), bdLocation.getLongitude());
         }
 
+        public static LatLng getLatLng(String latitude, String longitude) {
+            try {
+                return new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        public static LatLng getLatLng(double latitude, double longitude) {
+            return new LatLng(latitude, longitude);
+        }
+
         public static Overlay showLocation(BaiduMap baiduMap, LatLng latLng, int resourceId) {
             Overlay overlay = OverlayUtils.addOverlay(baiduMap, latLng, resourceId);
             updateMapStatus(baiduMap, latLng);
