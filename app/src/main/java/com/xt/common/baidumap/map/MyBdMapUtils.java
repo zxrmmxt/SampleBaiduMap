@@ -658,6 +658,9 @@ public class MyBdMapUtils {
     }
 
     public static class PathPlanningUtils {
+
+        private BikingRouteOverlay bikingRouteOverlay;
+
         public void pathPlanning(BaiduMap baiduMap, LatLng start, LatLng stop, long delay) {
             RoutePlanSearch routePlanSearch = RoutePlanSearch.newInstance();
             routePlanSearch.setOnGetRoutePlanResultListener(new OnGetRoutePlanResultListener() {
@@ -722,7 +725,12 @@ public class MyBdMapUtils {
                             }
 
                             {
-                                BikingRouteOverlay bikingRouteOverlay = new MyBikingRouteOverlay(baiduMap);
+                                if (bikingRouteOverlay != null) {
+                                    bikingRouteOverlay.removeFromMap();
+                                    bikingRouteOverlay = null;
+                                }
+
+                                bikingRouteOverlay = new MyBikingRouteOverlay(baiduMap);
                                 List<BikingRouteLine> routeLines = bikingRouteResult.getRouteLines();
                                 bikingRouteOverlay.setData(routeLines.get(0));
                                 bikingRouteOverlay.addToMap();
