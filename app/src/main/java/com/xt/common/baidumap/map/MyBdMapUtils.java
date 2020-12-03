@@ -159,6 +159,9 @@ public class MyBdMapUtils {
          * @return
          */
         public static boolean isZeroPoint(LatLng latLng) {
+            if (latLng == null) {
+                return true;
+            }
             return isZeroPoint(latLng.latitude, latLng.longitude);
         }
 
@@ -249,6 +252,7 @@ public class MyBdMapUtils {
 
         /**
          * 百度地图坐标转成高德地图坐标，不知道原理
+         *
          * @param location
          * @return
          */
