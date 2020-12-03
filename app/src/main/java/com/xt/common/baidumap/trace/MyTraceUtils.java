@@ -159,7 +159,6 @@ public class MyTraceUtils {
 
     /**
      * 将轨迹实时定位点转换为地图坐标
-     *
      * @param location
      * @return
      */

@@ -51,6 +51,7 @@ import com.baidu.mapapi.search.route.PlanNode;
 import com.baidu.mapapi.search.route.RoutePlanSearch;
 import com.baidu.mapapi.search.route.TransitRouteResult;
 import com.baidu.mapapi.search.route.WalkingRouteResult;
+import com.baidu.mapapi.utils.CoordinateConverter;
 import com.baidu.mapsdkplatform.comapi.location.CoordinateType;
 import com.blankj.utilcode.util.Utils;
 import com.xt.common.baidumap.BikingRouteOverlay;
@@ -244,6 +245,14 @@ public class MyBdMapUtils {
 
         public static Overlay showLocation(BaiduMap baiduMap, LatLng latLng) {
             return showLocation(baiduMap, latLng, R.drawable.wsdk_drawable_rg_ic_car3d);
+        }
+
+        public static LatLng coordinateConvertFromBD09LL(LatLng location) {
+            CoordinateConverter coordinateConverter = new CoordinateConverter();
+            coordinateConverter.from(CoordinateConverter.CoordType.BD09LL);
+            coordinateConverter.coord(location);
+            return coordinateConverter.convert();
+
         }
     }
 
