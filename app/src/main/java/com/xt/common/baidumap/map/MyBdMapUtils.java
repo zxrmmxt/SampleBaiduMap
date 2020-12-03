@@ -247,11 +247,52 @@ public class MyBdMapUtils {
             return showLocation(baiduMap, latLng, R.drawable.wsdk_drawable_rg_ic_car3d);
         }
 
+        /**
+         * 百度地图坐标转成高德地图坐标，不知道原理
+         * @param location
+         * @return
+         */
         public static LatLng coordinateConvertFromBD09LL(LatLng location) {
             CoordinateConverter coordinateConverter = new CoordinateConverter();
             coordinateConverter.from(CoordinateConverter.CoordType.BD09LL);
             coordinateConverter.coord(location);
             return coordinateConverter.convert();
+
+        }
+
+        /**
+         * 将GPS设备采集的原始GPS坐标转换成百度坐标
+         *
+         * @param location
+         * @return
+         */
+        public static LatLng coordinateConvertFromWGS84(LatLng location) {
+            CoordinateConverter coordinateConverter = new CoordinateConverter();
+            coordinateConverter.from(CoordinateConverter.CoordType.GPS);
+            coordinateConverter.coord(location);
+            LatLng convert = coordinateConverter.convert();
+            if (convert == null) {
+                convert = new LatLng(0, 0);
+            }
+            return convert;
+
+        }
+
+        /**
+         * 将google地图、soso地图、aliyun地图、mapabc地图和amap地图// 所用坐标转换成百度坐标
+         *
+         * @param location
+         * @return
+         */
+        public static LatLng coordinateConvert(LatLng location) {
+            CoordinateConverter coordinateConverter = new CoordinateConverter();
+            coordinateConverter.from(CoordinateConverter.CoordType.COMMON);
+            coordinateConverter.coord(location);
+            LatLng convert = coordinateConverter.convert();
+            if (convert == null) {
+                convert = new LatLng(0, 0);
+            }
+            return convert;
 
         }
     }
