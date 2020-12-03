@@ -57,7 +57,9 @@ import com.xt.common.baidumap.BikingRouteOverlay;
 import com.xt.common.utils.thread.MyThreadUtils;
 import com.xt.samplebaidumap.R;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author xt on 2020/7/14 14:36
@@ -399,21 +401,23 @@ public class MyBdMapUtils {
          * 通过递归调用实现轨迹回放
          *
          * @param moveMarker
-         * @param latLngList
-         * @param index
+         * @param startPoint
+         * @param endPoint
          */
-        public static void setMoveMarkPosition(final Marker moveMarker, List<LatLng> latLngList, int index) {
+        public static void setMoveMarkPosition(final Marker moveMarker, LatLng startPoint, LatLng endPoint, Long millis) {
             if (moveMarker == null) {
                 return;
             }
-            if ((latLngList == null) || (latLngList.size() == 0)) {
+            if (startPoint == null) {
                 return;
             }
-            if (index >= (latLngList.size() - 1)) {
+            if (endPoint == null) {
                 return;
             }
-            final LatLng startPoint = latLngList.get(index);
-            final LatLng endPoint = latLngList.get(index + 1);
+            if (millis == null) {
+                millis = 5L;
+            }
+
             moveMarker.setPosition(startPoint);
             moveMarker.setRotate((float) getAngle(startPoint, endPoint));
             //是不是正向的标示
@@ -431,15 +435,14 @@ public class MyBdMapUtils {
                 }
                 moveMarker.setPosition(latLng);
                 try {
-                    Thread.sleep(5);
+                    Thread.sleep(millis);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            setMoveMarkPosition(moveMarker, latLngList, index + 1);
         }
 
-        public Marker addMoveMarker(BaiduMap baiduMap, Marker moveMarker, LatLng current, LatLng next) {
+        public static Marker addMoveMarker(BaiduMap baiduMap, Marker moveMarker, LatLng current, LatLng next) {
             if (moveMarker != null) {
                 moveMarker.remove();
             }
@@ -455,6 +458,93 @@ public class MyBdMapUtils {
             moveMarker = (Marker) baiduMap.addOverlay(markerOptions);
             moveMarker.setRotate((float) getAngle(current, next));
             return moveMarker;
+        }
+    }
+
+    public static class TrackPlayer {
+        private Handler handler = MyThreadUtils.getThreadHandler();
+
+        private Marker moveMarker;
+        private List<LatLng> latLngList;
+        private int index = 0;
+
+        /**
+         * 回放倍范围:  1-10  [1最慢, 10最快,默认5]
+         */
+        private final Map<Integer, Long> playbackRateMap = new HashMap<>();
+        private long millis = 10;
+
+        private boolean isPlaying = false;
+
+        private PlayStateListener playStateListener;
+
+        public TrackPlayer(Marker moveMarker, List<LatLng> latLngList, int playbackRate, PlayStateListener playStateListener) {
+            this.moveMarker = moveMarker;
+            this.latLngList = latLngList;
+
+            for (int i = 1; i < 11; i++) {
+                playbackRateMap.put(i, 55L - 5 * i);
+            }
+            setPlaybackRate(playbackRate);
+
+            this.playStateListener = playStateListener;
+        }
+
+        public void clickPlay() {
+            if (isPlaying) {
+
+            } else {
+                if (isPlayFinish()) {
+                    index = 0;
+                    if (isPlayFinish()) {
+                        return;
+                    }
+                    if (playStateListener != null) {
+                        playStateListener.onPlayState(true);
+                    }
+                    playTrack();
+                }
+            }
+        }
+
+        private void playTrack() {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (latLngList != null) {
+                        if (isPlayFinish()) {
+                            if (playStateListener != null) {
+                                playStateListener.onPlayState(false);
+                            }
+                        } else {
+                            MoveOverlayUtils.setMoveMarkPosition(moveMarker, latLngList.get(index), latLngList.get(index + 1), millis);
+                            index = +1;
+                            if (isPlaying) {
+                                playTrack();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        private boolean isPlayFinish() {
+            return latLngList.size() > index + 1;
+        }
+
+        public void setPlaybackRate(int playbackRate) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (playbackRate > 0 && playbackRate < 11) {
+                        millis = playbackRateMap.get(playbackRate);
+                    }
+                }
+            });
+        }
+
+        public static interface PlayStateListener {
+            void onPlayState(boolean isPlaying);
         }
     }
 
