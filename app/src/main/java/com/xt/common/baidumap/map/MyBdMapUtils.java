@@ -14,6 +14,8 @@ import android.widget.ZoomControls;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -40,6 +42,11 @@ import com.baidu.mapapi.map.TextureMapView;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
 import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.geocode.GeoCodeResult;
+import com.baidu.mapapi.search.geocode.GeoCoder;
+import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
 import com.baidu.mapapi.search.route.BikingRouteLine;
 import com.baidu.mapapi.search.route.BikingRoutePlanOption;
 import com.baidu.mapapi.search.route.BikingRouteResult;
@@ -298,6 +305,42 @@ public class MyBdMapUtils {
             }
             return convert;
 
+        }
+
+        public static void latLng2Address(final LatLng latLng,OnGetGeoCoderResultListener onGetGeoCoderResultListener) {
+            MyThreadUtils.doBackgroundWork(new Runnable() {
+                @Override
+                public void run() {
+                    GeoCoder geoCoder = GeoCoder.newInstance();
+                    //        XTLogUtil.d("百度经纬度转地址");
+                    //设置地址或经纬度反编译后的监听,这里有两个回调方法,
+                    geoCoder.setOnGetGeoCodeResultListener(new OnGetGeoCoderResultListener() {
+                        //经纬度转换成地址
+                        @Override
+                        public void onGetReverseGeoCodeResult(ReverseGeoCodeResult result) {
+                            if ((result != null && result.error == SearchResult.ERRORNO.NO_ERROR)) {
+                                if (onGetGeoCoderResultListener != null) {
+                                    onGetGeoCoderResultListener.onGetReverseGeoCodeResult(result);
+                                }
+                            }
+//                XTLogUtil.d("地址:" + addressDetail.province+" "+addressDetail.city+" "+addressDetail.district);
+                        }
+
+                        //把地址转换成经纬度
+                        @Override
+                        public void onGetGeoCodeResult(GeoCodeResult result) {
+                            // 详细地址转换在经纬度
+                            String address = result.getAddress();
+                        }
+                    });
+                    // 设置反地理经纬度坐标,请求位置时,需要一个经纬度
+                    try {
+                        geoCoder.reverseGeoCode(new ReverseGeoCodeOption().location(latLng));
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
     }
 
