@@ -708,90 +708,85 @@ public class MyBdMapUtils {
 
         private BikingRouteOverlay bikingRouteOverlay;
 
-        public void pathPlanning(BaiduMap baiduMap, LatLng start, LatLng stop, long delay) {
+        public void pathPlanning(LatLng start, LatLng stop, OnGetRoutePlanResultListenerImpl onGetRoutePlanResultListener) {
             RoutePlanSearch routePlanSearch = RoutePlanSearch.newInstance();
-            routePlanSearch.setOnGetRoutePlanResultListener(new OnGetRoutePlanResultListener() {
-                @Override
-                public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
-
-                }
-
-                @Override
-                public void onGetTransitRouteResult(TransitRouteResult transitRouteResult) {
-
-                }
-
-                @Override
-                public void onGetMassTransitRouteResult(MassTransitRouteResult massTransitRouteResult) {
-
-                }
-
-                @Override
-                public void onGetDrivingRouteResult(DrivingRouteResult drivingRouteResult) {
-
-                }
-
-                @Override
-                public void onGetIndoorRouteResult(IndoorRouteResult indoorRouteResult) {
-
-                }
-
-                @Override
-                public void onGetBikingRouteResult(BikingRouteResult bikingRouteResult) {
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            {
-                                if (bikingRouteResult == null) {
-//                                R.string.pathPlanError3
-                                    return;
-                                }
-                                if (bikingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
-                                    if (bikingRouteResult.error == SearchResult.ERRORNO.RESULT_NOT_FOUND) {
-//                                    R.string.pathPlanError0
-                                        return;
-                                    }
-                                    if (bikingRouteResult.error == SearchResult.ERRORNO.ST_EN_TOO_NEAR) {
-//                                    R.string.pathPlanError1
-                                        return;
-                                    }
-                                    if (bikingRouteResult.error == SearchResult.ERRORNO.NETWORK_ERROR) {
-//                                    R.string.pathPlanError2
-                                        return;
-                                    }
-//                                R.string.pathPlanError3
-                                    return;
-                                }
-
-                                List<BikingRouteLine> routeLines = bikingRouteResult.getRouteLines();
-                                if (routeLines == null || routeLines.get(0) == null || routeLines.get(0).getStarting() == null || routeLines.get(0).getTerminal() == null) {
-//                                R.string.pathPlanError3
-                                    return;
-                                }
-                            }
-
-                            {
-                                if (bikingRouteOverlay != null) {
-                                    bikingRouteOverlay.removeFromMap();
-                                    bikingRouteOverlay = null;
-                                }
-
-                                bikingRouteOverlay = new MyBikingRouteOverlay(baiduMap);
-                                List<BikingRouteLine> routeLines = bikingRouteResult.getRouteLines();
-                                bikingRouteOverlay.setData(routeLines.get(0));
-                                bikingRouteOverlay.addToMap();
-                                bikingRouteOverlay.zoomToSpan();
-                            }
-                        }
-                    }, delay);
-                }
-            });
+            routePlanSearch.setOnGetRoutePlanResultListener(onGetRoutePlanResultListener);
             PlanNode stNode = PlanNode.withLocation(start);
             PlanNode enNode = PlanNode.withLocation(stop);
             routePlanSearch.bikingSearch((new BikingRoutePlanOption())
                     .from(stNode)
                     .to(enNode));
+        }
+
+        public void addRouteLines(BaiduMap baiduMap, BikingRouteResult bikingRouteResult) {
+            {
+                if (bikingRouteResult == null) {
+//                                R.string.pathPlanError3
+                    return;
+                }
+                if (bikingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
+                    if (bikingRouteResult.error == SearchResult.ERRORNO.RESULT_NOT_FOUND) {
+//                                    R.string.pathPlanError0
+                        return;
+                    }
+                    if (bikingRouteResult.error == SearchResult.ERRORNO.ST_EN_TOO_NEAR) {
+//                                    R.string.pathPlanError1
+                        return;
+                    }
+                    if (bikingRouteResult.error == SearchResult.ERRORNO.NETWORK_ERROR) {
+//                                    R.string.pathPlanError2
+                        return;
+                    }
+//                                R.string.pathPlanError3
+                    return;
+                }
+
+                List<BikingRouteLine> routeLines = bikingRouteResult.getRouteLines();
+                if (routeLines == null || routeLines.get(0) == null || routeLines.get(0).getStarting() == null || routeLines.get(0).getTerminal() == null) {
+//                                R.string.pathPlanError3
+                    return;
+                }
+            }
+
+            {
+                if (bikingRouteOverlay != null) {
+                    bikingRouteOverlay.removeFromMap();
+                    bikingRouteOverlay = null;
+                }
+
+                bikingRouteOverlay = new MyBikingRouteOverlay(baiduMap);
+                List<BikingRouteLine> routeLines = bikingRouteResult.getRouteLines();
+                bikingRouteOverlay.setData(routeLines.get(0));
+                bikingRouteOverlay.addToMap();
+                bikingRouteOverlay.zoomToSpan();
+            }
+        }
+
+        public static class OnGetRoutePlanResultListenerImpl implements OnGetRoutePlanResultListener {
+
+            @Override
+            public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
+            }
+
+            @Override
+            public void onGetTransitRouteResult(TransitRouteResult transitRouteResult) {
+            }
+
+            @Override
+            public void onGetMassTransitRouteResult(MassTransitRouteResult massTransitRouteResult) {
+            }
+
+            @Override
+            public void onGetDrivingRouteResult(DrivingRouteResult drivingRouteResult) {
+            }
+
+            @Override
+            public void onGetIndoorRouteResult(IndoorRouteResult indoorRouteResult) {
+            }
+
+            @Override
+            public void onGetBikingRouteResult(BikingRouteResult bikingRouteResult) {
+            }
         }
     }
 
