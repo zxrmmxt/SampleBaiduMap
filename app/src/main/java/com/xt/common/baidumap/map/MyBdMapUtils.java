@@ -107,10 +107,26 @@ public class MyBdMapUtils {
         private static void updateMapStatus(BaiduMap baiduMap, LatLng centerLocation, float zoom) {
             MapStatus.Builder builder = new MapStatus.Builder();
             MapStatusUpdate update = MapStatusUpdateFactory.newMapStatus(builder.target(centerLocation).zoom(zoom).build());
+            updateMapStatus(baiduMap,update);
+        }
+
+        public static void updateMapStatus(BaiduMap baiduMap, MapStatusUpdate update) {
             if (baiduMap.getProjection() != null) {
                 baiduMap.animateMapStatus(update);
             } else if (baiduMap.getMapStatus() == null) {
                 baiduMap.setMapStatus(update);
+            }else {
+                baiduMap.setOnMapLoadedCallback(new BaiduMap.OnMapLoadedCallback() {
+                    @Override
+                    public void onMapLoaded() {
+                        baiduMap.setOnMapLoadedCallback(null);
+                        if (baiduMap.getProjection() != null) {
+                            baiduMap.animateMapStatus(update);
+                        } else if (baiduMap.getMapStatus() == null) {
+                            baiduMap.setMapStatus(update);
+                        }
+                    }
+                });
             }
         }
 
