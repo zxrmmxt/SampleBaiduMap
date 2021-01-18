@@ -107,7 +107,7 @@ public class MyBdMapUtils {
         private static void updateMapStatus(BaiduMap baiduMap, LatLng centerLocation, float zoom) {
             MapStatus.Builder builder = new MapStatus.Builder();
             MapStatusUpdate update = MapStatusUpdateFactory.newMapStatus(builder.target(centerLocation).zoom(zoom).build());
-            updateMapStatus(baiduMap,update);
+            updateMapStatus(baiduMap, update);
         }
 
         public static void updateMapStatus(BaiduMap baiduMap, MapStatusUpdate update) {
@@ -115,7 +115,7 @@ public class MyBdMapUtils {
                 baiduMap.animateMapStatus(update);
             } else if (baiduMap.getMapStatus() == null) {
                 baiduMap.setMapStatus(update);
-            }else {
+            } else {
                 baiduMap.setOnMapLoadedCallback(new BaiduMap.OnMapLoadedCallback() {
                     @Override
                     public void onMapLoaded() {
@@ -154,7 +154,7 @@ public class MyBdMapUtils {
                 builder.include(point);
             }
             MapStatusUpdate msUpdate = MapStatusUpdateFactory.newLatLngBounds(builder.build());
-            baiduMap.animateMapStatus(msUpdate);
+            updateMapStatus(baiduMap, msUpdate);
         }
 
         /**
@@ -323,7 +323,7 @@ public class MyBdMapUtils {
 
         }
 
-        public static void latLng2Address(final LatLng latLng,OnGetGeoCoderResultListener onGetGeoCoderResultListener) {
+        public static void latLng2Address(final LatLng latLng, OnGetGeoCoderResultListener onGetGeoCoderResultListener) {
             MyThreadUtils.doBackgroundWork(new Runnable() {
                 @Override
                 public void run() {
@@ -605,18 +605,24 @@ public class MyBdMapUtils {
 
         public void clickPlay() {
             if (isPlaying) {
-
+                isPlaying = false;
+                if (playStateListener != null) {
+                    playStateListener.onPlayState(false);
+                }
             } else {
                 if (isPlayFinish()) {
                     index = 0;
                     if (isPlayFinish()) {
                         return;
                     }
-                    if (playStateListener != null) {
-                        playStateListener.onPlayState(true);
-                    }
-                    playTrack();
                 }
+
+                isPlaying = true;
+
+                if (playStateListener != null) {
+                    playStateListener.onPlayState(true);
+                }
+                playTrack();
             }
         }
 
@@ -624,17 +630,20 @@ public class MyBdMapUtils {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    if (latLngList != null) {
-                        if (isPlayFinish()) {
-                            if (playStateListener != null) {
-                                playStateListener.onPlayState(false);
-                            }
-                        } else {
-                            MoveOverlayUtils.setMoveMarkPosition(moveMarker, latLngList.get(index), latLngList.get(index + 1), millis);
-                            index = +1;
-                            if (isPlaying) {
-                                playTrack();
-                            }
+                    if (latLngList == null) {
+                        return;
+                    }
+
+                    if (isPlayFinish()) {
+                        isPlaying = false;
+                        if (playStateListener != null) {
+                            playStateListener.onPlayState(false);
+                        }
+                    } else {
+                        MoveOverlayUtils.setMoveMarkPosition(moveMarker, latLngList.get(index), latLngList.get(index + 1), millis);
+                        index += 1;
+                        if (isPlaying) {
+                            playTrack();
                         }
                     }
                 }
@@ -642,7 +651,11 @@ public class MyBdMapUtils {
         }
 
         private boolean isPlayFinish() {
-            return latLngList.size() > index + 1;
+            if (latLngList.size() > index + 1) {
+                return false;
+            } else {
+                return true;
+            }
         }
 
         public void setPlaybackRate(int playbackRate) {
