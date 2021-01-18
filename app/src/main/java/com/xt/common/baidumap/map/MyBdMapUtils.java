@@ -145,7 +145,7 @@ public class MyBdMapUtils {
             baiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(mapStatus));
         }
 
-        public void animateMapStatus(BaiduMap baiduMap, List<LatLng> points) {
+        public static void animateMapStatus(BaiduMap baiduMap, List<LatLng> points) {
             if (null == points || points.isEmpty()) {
                 return;
             }
