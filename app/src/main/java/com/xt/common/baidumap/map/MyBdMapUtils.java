@@ -560,7 +560,7 @@ public class MyBdMapUtils {
                 moveMarker.remove();
             }
             BitmapDescriptor myLocationIcon = BitmapDescriptorFactory
-                    .fromResource(R.drawable.wsdk_icon_classic);
+                    .fromResource(R.mipmap.icon_point);
             OverlayOptions markerOptions =
                     new MarkerOptions()
                             .flat(true)
